@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+
+/*
+ | Ride Efficiency — "Slate Focus" design tokens
+ |
+ | Minimalist dashboard: generous whitespace, flat cards, 8px radii,
+ | a single accent (emerald) and status colors used only for data —
+ | profitable / neutral / loss.
+ */
+@theme {
+    --color-surface: #ffffff;
+    --color-canvas: #f8fafc;
+    --color-ink: #0f172a;
+    --color-ink-muted: #64748b;
+    --color-line: #e2e8f0;
+
+    --color-profit: #10b981;
+    --color-neutral: #f59e0b;
+    --color-loss: #ef4444;
+
+    --radius-card: 8px;
+}
+
+:root {
+    color-scheme: light;
+}
+
+html,
+body,
+#app {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular figures keep numeric columns aligned in tables and KPI cards. */
+.tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+.p-card {
+    border: 1px solid var(--color-line);
+    box-shadow: none;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+    background: transparent;
+    color: var(--color-ink-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--color-line);
+}
+
+.p-datatable .p-datatable-tbody > tr {
+    border-bottom: 1px solid var(--color-line);
+    background: transparent;
+}
+
+.p-datatable .p-datatable-tbody > tr:last-child {
+    border-bottom: 0;
+}
