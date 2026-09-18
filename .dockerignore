@@ -1,0 +1,24 @@
+# Build output — recreated inside the image
+dist
+dist-ssr
+coverage
+
+# Dependencies — installed from the lockfile by `npm ci` in the image,
+# the host copy may target a different platform (darwin vs linux).
+node_modules
+
+# Local environment: `.env` is bind-mounted into the dev container by
+# docker compose so `VITE_*` values can be edited without a rebuild.
+.env
+.env.*
+!.env.example
+
+# Tooling, VCS and editor noise
+.git
+.gitignore
+.github
+.vscode
+.DS_Store
+.vite
+*.local
+*.log

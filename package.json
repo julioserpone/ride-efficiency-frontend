@@ -5,6 +5,9 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
+        "docker:dev": "docker compose up --build",
+        "docker:down": "docker compose down",
+        "docker:logs": "docker compose logs -f web",
         "build": "vue-tsc -b && vite build",
         "preview": "vite preview",
         "test": "vitest run",
