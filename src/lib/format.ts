@@ -2,13 +2,6 @@
  * Presentation helpers shared by the dashboard widgets.
  */
 
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-})
-
 /**
  * Numeric values arrive from the API as strings (Eloquent decimal casts),
  * so every helper accepts both and falls back to 0 for null/invalid input.
@@ -23,8 +16,13 @@ export function toNumber(value: number | string | null | undefined): number {
     return Number.isFinite(parsed) ? parsed : 0
 }
 
-export function formatCurrency(value: number | string | null | undefined): string {
-    return currencyFormatter.format(toNumber(value))
+export function formatCurrency(value: number | string | null | undefined, currency = 'USD'): string {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(toNumber(value))
 }
 
 export function formatNumber(value: number | string | null | undefined, decimals = 1): string {

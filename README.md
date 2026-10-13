@@ -16,36 +16,51 @@ drivers.
 - Axios client with a bearer-token interceptor
 - Vitest for unit tests, ESLint + Prettier for style
 
-## Design system — "Slate Focus"
+## Design system — "Harbor"
 
-A minimalist dashboard: generous whitespace, flat cards, 8px radii and a single accent
-colour. Colour is reserved for data, never decoration.
+An easy-on-the-eyes analytics dashboard: cool, near-white surfaces, deep blue-green
+text, a restrained teal brand accent and semantic colors reserved for data.
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--color-surface` | `#ffffff` | Cards, header, sidebar |
-| `--color-canvas` | `#f8fafc` | App background |
-| `--color-ink` | `#0f172a` | Primary text |
-| `--color-ink-muted` | `#64748b` | Labels, secondary text |
-| `--color-line` | `#e2e8f0` | 1px borders |
-| `--color-profit` | `#10b981` | Profitable, accent |
-| `--color-neutral` | `#f59e0b` | Neutral, fuel cost |
-| `--color-loss` | `#ef4444` | Loss |
+| Token                  | Value     | Use                                     |
+| ---------------------- | --------- | --------------------------------------- |
+| `--color-surface`      | `#ffffff` | Cards, header, sidebar                  |
+| `--color-canvas`       | `#f4f7f7` | Low-glare app background                |
+| `--color-ink`          | `#192c3a` | Primary text                            |
+| `--color-ink-muted`    | `#5e7080` | Labels, secondary text                  |
+| `--color-line`         | `#dce5e7` | Dividers and borders                    |
+| `--color-brand`        | `#336b67` | Primary actions and selected navigation |
+| `--color-brand-strong` | `#275753` | Hover and emphasis                      |
+| `--color-brand-soft`   | `#e7f2f0` | Soft accent backgrounds                 |
+| `--color-profit`       | `#1c7a65` | Positive performance                    |
+| `--color-neutral`      | `#a56817` | Neutral / attention                     |
+| `--color-loss`         | `#b8404d` | Negative performance                    |
+| `--color-info`         | `#386f96` | Informational status                    |
 
-Layout conventions: a 240px sidebar collapsing to 64px with a 3px emerald bar marking
-the active item; a 56px sticky header; KPI cards with a small muted label above a large
-tabular number; tables with a thin bottom border per row and no zebra striping.
+Typography: Inter (or the platform sans-serif fallback) for UI, body copy and numeric
+values. Tabular figures use lining/tabular numerals without switching to a visually
+different monospaced font. Keep body text at 14–16px, labels at 12px or larger, and avoid
+using color alone to communicate status.
+
+Layout conventions: a 240px sidebar collapsing to 64px with a 3px teal bar marking the
+active item; a 56px sticky header; KPI cards with a small muted label above a large
+tabular number; 12px card radii; tables with a thin bottom border per row and no zebra
+striping. Reserve semantic green, amber, red and blue for values/statuses, not decoration.
+On viewports below 768px, the sidebar starts closed and opens as an overlay drawer from
+the header menu button. Text, number, date, file and select form controls share a 44px
+height, with a padded custom select indicator. Data-table body text is 13px and headers
+are 11px, both using the interface font.
 
 ## Getting started
 
 ```bash
-npm install
-cp .env.example .env     # point VITE_API_URL at your API
+npm ci
+cp .env.example .env     # set VITE_API_URL to the versioned API base URL
 npm run dev              # http://localhost:5173
 ```
 
 The API must be running and its `CORS_ALLOWED_ORIGINS` must include
-`http://localhost:5173`.
+`http://localhost:5173`. `VITE_*` values are bundled into browser code; never put
+credentials or server-side secrets in them.
 
 ### With Docker
 
@@ -63,10 +78,10 @@ Two things make it work:
 
 - The project is bind-mounted at `/app`, while `/app/node_modules` is left to a
   named volume. The lockfile is installed with `npm ci` on Linux inside the image, so
-the host's macOS binaries never leak into the container.
+  the host's macOS binaries never leak into the container.
 - `VITE_API_URL` is passed as a process environment variable. Vite reads process values
-  ahead of `.env`, so `docker-compose.yml` is the single source of truth and the
-  committed `.env` (which points at `localhost`) is not used for the API URL.
+  ahead of `.env`, so `docker-compose.yml` is the source of truth for the container
+  and the local `.env` value is not used for the API URL.
 
 Because the browser resolves `VITE_API_URL`, the default `http://localhost/api/v1` keeps
 working as long as the API publishes port 80 — change `FRONTEND_PORT` in `.env` if 5173 is
@@ -84,12 +99,13 @@ Signing out calls `DELETE /api/v1/auth/token` so the token is revoked server-sid
 
 ## Screens
 
-| Route | Purpose |
-| --- | --- |
-| `/login` | Token issuance form |
-| `/` | Overview: KPI cards, weekly trend, km chart, recent shifts |
-| `/shifts` | Full shift history with per-platform earnings |
-| `/invoices` | Fuel invoices and their OCR processing state |
+| Route       | Purpose                                                             |
+| ----------- | ------------------------------------------------------------------- |
+| `/login`    | Token issuance form                                                 |
+| `/`         | Overview: KPI cards, weekly trend, km chart, recent shifts          |
+| `/shifts`   | Start, complete and inspect shifts and per-platform earnings        |
+| `/invoices` | Upload, review and manage fuel/electricity invoices and OCR results |
+| `/fleet`    | Manage vehicle energy profiles and calculate trip profitability     |
 
 ## Scripts
 
@@ -100,7 +116,16 @@ npm run docker:logs  # follow the container's Vite output
 npm run docker:down  # stop the container
 npm run build        # type-check + production build
 npm run test         # unit tests (Vitest)
-npm run lint         # ESLint --fix
-npm run format       # Prettier
+npm run lint:check   # ESLint without modifying files
+npm run format:check # Prettier without modifying files
 npm run types:check  # vue-tsc
 ```
+
+## Contributing and project guidance
+
+Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) for local setup, branch and
+commit conventions, pull-request expectations and verification commands.
+[`AGENTS.md`](AGENTS.md) provides repository-wide guidance for AI coding agents;
+Vue component instructions are scoped in
+[`.github/instructions/vue-frontend.instructions.md`](.github/instructions/vue-frontend.instructions.md).
+Report vulnerabilities privately as described in [`SECURITY.md`](SECURITY.md).

@@ -27,7 +27,13 @@ const router = createRouter({
             path: '/invoices',
             name: 'invoices',
             component: () => import('@/views/InvoicesView.vue'),
-            meta: { title: 'Recibos' },
+            meta: { title: 'Energía y recibos' },
+        },
+        {
+            path: '/fleet',
+            name: 'fleet',
+            component: () => import('@/views/FleetView.vue'),
+            meta: { title: 'Vehículos y viajes' },
         },
         {
             path: '/:pathMatch(.*)*',
