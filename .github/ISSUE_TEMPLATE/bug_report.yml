@@ -1,0 +1,44 @@
+name: Bug report
+description: Report a reproducible problem in the web dashboard.
+title: '[Bug]: '
+labels:
+    - bug
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Do not include passwords, access tokens, real invoices, personal information, or production data.
+    - type: textarea
+      id: summary
+      attributes:
+          label: What happened?
+          description: A concise description of the unexpected behavior.
+      validations:
+          required: true
+    - type: textarea
+      id: reproduce
+      attributes:
+          label: Steps to reproduce
+          placeholder: "1. Open …\n2. Select …\n3. Observe …"
+      validations:
+          required: true
+    - type: textarea
+      id: expected
+      attributes:
+          label: Expected behavior
+      validations:
+          required: true
+    - type: input
+      id: environment
+      attributes:
+          label: Browser, OS and viewport
+          placeholder: 'Safari 18, macOS, 390 × 844'
+      validations:
+          required: false
+    - type: textarea
+      id: evidence
+      attributes:
+          label: Screenshots or console output
+          description: Use synthetic or redacted data only.
+      validations:
+          required: false

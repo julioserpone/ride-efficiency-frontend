@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an improvement for the web dashboard.
+title: '[Feature]: '
+labels:
+    - enhancement
+body:
+    - type: textarea
+      id: problem
+      attributes:
+          label: Problem to solve
+          description: What user need or workflow is currently difficult?
+      validations:
+          required: true
+    - type: textarea
+      id: proposal
+      attributes:
+          label: Proposed behavior
+          description: Describe the outcome without prescribing an implementation.
+      validations:
+          required: true
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternatives considered
+      validations:
+          required: false
+    - type: textarea
+      id: considerations
+      attributes:
+          label: Accessibility, responsive or API considerations
+          description: Mention affected screen sizes or API contract changes, if known.
+      validations:
+          required: false
