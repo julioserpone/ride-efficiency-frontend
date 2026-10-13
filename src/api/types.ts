@@ -10,6 +10,18 @@ export interface ApiUser {
     email: string
 }
 
+export interface Country {
+    id: number
+    code: string
+    name: string
+    currency_code: string
+    currency_symbol: string
+}
+
+export interface CountryListResponse {
+    countries: Country[]
+}
+
 export interface IssueTokenResponse {
     token: string
     token_type: string
@@ -55,6 +67,22 @@ export interface Paginated<T> {
 export interface ShiftsResponse {
     summary: ShiftsSummary
     shifts: Paginated<DailyShift>
+}
+
+export interface ShiftMutationResponse {
+    message: string
+    shift: DailyShift
+}
+
+export interface ShiftInput {
+    shift_date?: string
+    total_km_gps?: number
+    total_minutes_connected?: number
+    total_trips_completed?: number
+    total_offers_scanned?: number
+    applied_fuel_cost?: number
+    estimated_depreciation?: number
+    earnings?: Array<{ provider_name: string; gross_amount: number }>
 }
 
 export interface StatsTotals {
@@ -123,18 +151,101 @@ export interface MonthlyResponse {
     monthly: MonthlyEntry[]
 }
 
-export type FuelInvoiceStatus = 'pending' | 'processing' | 'completed' | 'failed'
+export type EnergyInvoiceStatus = 'pending' | 'processing' | 'review_required' | 'completed' | 'failed'
 
-export interface FuelInvoice {
+export interface EnergyInvoice {
     id: number
+    country_id: number | null
+    energy_product_id: number | null
     image_path: string
-    status: FuelInvoiceStatus
+    total_amount_paid: string | null
+    energy_amount: string | null
+    energy_unit: 'gallons' | 'litres' | 'kwh' | null
+    currency_code: string | null
+    fuel_type: string | null
+    energy_type: string | null
+    unit_price: string | null
+    vendor_name: string | null
     invoice_date: string | null
-    total_amount: string | null
-    liters: string | null
+    status: EnergyInvoiceStatus
     created_at: string
 }
 
-export interface FuelInvoicesResponse {
-    invoices: Paginated<FuelInvoice>
+export interface EnergyInvoicesResponse {
+    invoices: Paginated<EnergyInvoice>
+}
+
+export interface EnergyInvoiceMutationResponse {
+    message: string
+    invoice: EnergyInvoice
+}
+
+export interface EnergyProduct {
+    id: number
+    code: string
+    name: string
+    energy_type: string
+    energy_unit: string
+}
+
+export interface EnergyProductsResponse {
+    country: Pick<Country, 'code' | 'name'>
+    products: EnergyProduct[]
+}
+
+export interface Vehicle {
+    id: number
+    country_id: number
+    name: string
+    energy_type: string
+    energy_unit: string
+    energy_economy: string
+    commission_rate: string | null
+    is_active: boolean
+    country: Country
+}
+
+export interface VehiclesResponse {
+    vehicles: Paginated<Vehicle>
+}
+
+export interface VehicleMutationResponse {
+    message: string
+    vehicle: Vehicle
+}
+
+export interface RideTrip {
+    id: number
+    vehicle_id: number
+    daily_shift_id: number | null
+    platform_name: string
+    currency_code: string
+    gross_fare: string
+    distance_km: string
+    deadhead_distance_km: string
+    duration_minutes: number | null
+    commission_rate: string
+    energy_price_per_unit: string
+    energy_cost: string
+    commission_cost: string
+    depreciation_cost: string
+    other_costs: string
+    net_profit: string
+    break_even_fare: string
+    verdict: string
+    created_at: string
+    vehicle?: Vehicle
+}
+
+export interface RideTripsResponse {
+    trips: Paginated<RideTrip>
+}
+
+export interface RideTripMutationResponse {
+    message: string
+    trip: RideTrip
+}
+
+export interface RideTripDetailResponse {
+    trip: RideTrip
 }

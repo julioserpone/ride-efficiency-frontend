@@ -19,6 +19,10 @@ describe('formatCurrency', () => {
         expect(formatCurrency('125.50')).toBe('$125.50')
     })
 
+    it('formats using the currency code returned for a country', () => {
+        expect(formatCurrency(250, 'COP')).toContain('COP')
+    })
+
     it('formats missing values as zero', () => {
         expect(formatCurrency(null)).toBe('$0.00')
     })

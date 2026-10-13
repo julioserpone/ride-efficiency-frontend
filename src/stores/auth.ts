@@ -26,6 +26,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    async function loadCurrentUser(): Promise<void> {
+        user.value = await authApi.currentUser()
+    }
+
     async function logout(): Promise<void> {
         try {
             await authApi.revokeToken()
@@ -36,5 +40,5 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    return { user, token, isLoading, isAuthenticated, login, logout }
+    return { user, token, isLoading, isAuthenticated, login, loadCurrentUser, logout }
 })

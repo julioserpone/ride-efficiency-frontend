@@ -22,7 +22,7 @@ const chartOptions = computed<ApexOptions>(() => ({
         fontFamily: 'inherit',
         animations: { speed: 300 },
     },
-    colors: ['#10b981', '#f59e0b'],
+    colors: ['#1c7a65', '#a56817'],
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth', width: 2 },
     fill: {
@@ -30,7 +30,7 @@ const chartOptions = computed<ApexOptions>(() => ({
         gradient: { shadeIntensity: 0.4, opacityFrom: 0.18, opacityTo: 0.02, stops: [0, 90, 100] },
     },
     grid: {
-        borderColor: '#e2e8f0',
+        borderColor: '#dce5e7',
         strokeDashArray: 0,
         xaxis: { lines: { show: false } },
         yaxis: { lines: { show: true } },
@@ -40,11 +40,11 @@ const chartOptions = computed<ApexOptions>(() => ({
         categories: props.labels,
         axisBorder: { show: false },
         axisTicks: { show: false },
-        labels: { style: { colors: '#64748b', fontSize: '11px' } },
+        labels: { style: { colors: '#5e7080', fontSize: '11px' } },
     },
     yaxis: {
         labels: {
-            style: { colors: '#64748b', fontSize: '11px' },
+            style: { colors: '#5e7080', fontSize: '11px' },
             formatter: (value: number) => formatCurrency(value),
         },
     },
@@ -53,7 +53,7 @@ const chartOptions = computed<ApexOptions>(() => ({
         horizontalAlign: 'right',
         fontSize: '12px',
         markers: { size: 6 },
-        labels: { colors: '#64748b' },
+        labels: { colors: '#5e7080' },
     },
     tooltip: {
         y: { formatter: (value: number) => formatCurrency(value) },
