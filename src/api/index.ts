@@ -4,6 +4,7 @@ import type {
     EfficiencyResponse,
     EnergyInvoice,
     EnergyInvoiceMutationResponse,
+    EnergyInvoiceReviewPayload,
     EnergyInvoicesResponse,
     EnergyProductsResponse,
     IssueTokenResponse,
@@ -141,7 +142,7 @@ export const energyInvoicesApi = {
         return data.invoice
     },
 
-    async review(id: number, payload: Record<string, string | number | null>) {
+    async review(id: number, payload: EnergyInvoiceReviewPayload) {
         const { data } = await http.patch<EnergyInvoiceMutationResponse>(`/energy-invoices/${id}/review`, payload)
 
         return data

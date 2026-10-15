@@ -8,6 +8,12 @@ import { computed, onMounted, ref } from 'vue'
 import { countriesApi, energyInvoicesApi } from '@/api'
 import type { Country, EnergyInvoice, EnergyInvoiceStatus, EnergyProduct } from '@/api/types'
 import SectionCard from '@/components/SectionCard.vue'
+import {
+    createInvoiceReviewForm,
+    createInvoiceReviewPayload,
+    newInvoiceItem,
+    type InvoiceReviewForm,
+} from '@/lib/invoiceReview'
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format'
 
 const invoices = ref<EnergyInvoice[]>([])
@@ -24,17 +30,24 @@ const file = ref<File | null>(null)
 const uploadCountryId = ref<number | null>(null)
 const uploadDate = ref('')
 const reviewInvoice = ref<EnergyInvoice | null>(null)
-const reviewForm = ref({
-    country_id: '',
-    energy_type: 'regular_gasoline',
-    energy_unit: 'gallons',
-    energy_amount: '',
-    unit_price: '',
-    total_amount_paid: '',
-    energy_product_id: '',
-    fuel_type: '',
-    invoice_date: '',
-})
+const emptyReviewInvoice: EnergyInvoice = {
+    id: 0,
+    country_id: null,
+    energy_product_id: null,
+    image_path: '',
+    total_amount_paid: null,
+    energy_amount: null,
+    energy_unit: null,
+    currency_code: null,
+    fuel_type: null,
+    energy_type: null,
+    unit_price: null,
+    vendor_name: null,
+    invoice_date: null,
+    status: 'pending',
+    created_at: '',
+}
+const reviewForm = ref<InvoiceReviewForm>(createInvoiceReviewForm(emptyReviewInvoice, null))
 
 async function load(): Promise<void> {
     isLoading.value = true
@@ -96,6 +109,10 @@ function updateReviewEnergyType(): void {
 function updateReviewCountry(): void {
     reviewForm.value.energy_product_id = ''
     loadProducts()
+}
+
+function removeInvoiceItem(index: number): void {
+    reviewForm.value.items.splice(index, 1)
 }
 
 function previousPage(): void {
@@ -161,17 +178,7 @@ async function openReview(invoice: EnergyInvoice): Promise<void> {
     try {
         const details = await energyInvoicesApi.show(invoice.id)
         reviewInvoice.value = details
-        reviewForm.value = {
-            country_id: String(details.country_id ?? uploadCountryId.value ?? ''),
-            energy_type: details.energy_type ?? 'regular_gasoline',
-            energy_unit: details.energy_unit ?? 'gallons',
-            energy_amount: details.energy_amount ?? '',
-            unit_price: details.unit_price ?? '',
-            total_amount_paid: details.total_amount_paid ?? '',
-            energy_product_id: details.energy_product_id ? String(details.energy_product_id) : '',
-            fuel_type: details.fuel_type ?? '',
-            invoice_date: details.invoice_date?.slice(0, 10) ?? '',
-        }
+        reviewForm.value = createInvoiceReviewForm(details, uploadCountryId.value)
         await loadProducts()
     } catch (reviewError) {
         error.value = reviewError instanceof Error ? reviewError.message : 'No se pudo abrir el recibo.'
@@ -203,17 +210,7 @@ async function saveReview(): Promise<void> {
     isSavingReview.value = true
 
     try {
-        await energyInvoicesApi.review(reviewInvoice.value.id, {
-            country_id: Number(reviewForm.value.country_id),
-            energy_type: reviewForm.value.energy_type,
-            energy_unit: reviewForm.value.energy_unit,
-            energy_amount: Number(reviewForm.value.energy_amount),
-            unit_price: Number(reviewForm.value.unit_price),
-            total_amount_paid: reviewForm.value.total_amount_paid ? Number(reviewForm.value.total_amount_paid) : null,
-            energy_product_id: reviewForm.value.energy_product_id ? Number(reviewForm.value.energy_product_id) : null,
-            fuel_type: reviewForm.value.fuel_type || null,
-            invoice_date: reviewForm.value.invoice_date || null,
-        })
+        await energyInvoicesApi.review(reviewInvoice.value.id, createInvoiceReviewPayload(reviewForm.value))
         reviewInvoice.value = null
         await load()
     } catch (saveError) {
@@ -307,7 +304,18 @@ async function deleteInvoice(invoice: EnergyInvoice): Promise<void> {
                         <template #body="{ data: row }">{{ formatDate(row.invoice_date) }}</template>
                     </Column>
                     <Column field="vendor_name" header="Proveedor" style="min-width: 145px">
-                        <template #body="{ data: row }">{{ row.vendor_name ?? row.fuel_type ?? '—' }}</template>
+                        <template #body="{ data: row }">
+                            <span>{{
+                                row.vendor?.commercial_name ??
+                                row.vendor?.legal_name ??
+                                row.vendor_name ??
+                                row.fuel_type ??
+                                '—'
+                            }}</span>
+                            <small v-if="row.vendor?.tax_id ?? row.vendor_tax_id" class="block text-ink-muted">
+                                ID: {{ row.vendor?.tax_id ?? row.vendor_tax_id }}
+                            </small>
+                        </template>
                     </Column>
                     <Column field="total_amount_paid" header="Total" style="min-width: 110px">
                         <template #body="{ data: row }">
@@ -364,6 +372,14 @@ async function deleteInvoice(invoice: EnergyInvoice): Promise<void> {
                                     Revisar
                                 </button>
                                 <button
+                                    v-else
+                                    type="button"
+                                    class="text-xs font-medium text-brand hover:underline"
+                                    @click="openReview(row)"
+                                >
+                                    Ver detalle
+                                </button>
+                                <button
                                     type="button"
                                     class="text-xs font-medium text-loss hover:underline"
                                     @click="deleteInvoice(row)"
@@ -414,9 +430,12 @@ async function deleteInvoice(invoice: EnergyInvoice): Promise<void> {
                 aria-modal="true"
                 aria-labelledby="review-title"
             >
-                <h2 id="review-title" class="text-base font-semibold text-ink">Revisar datos del recibo</h2>
+                <h2 id="review-title" class="text-base font-semibold text-ink">
+                    {{ reviewInvoice.status === 'review_required' ? 'Revisar datos del recibo' : 'Detalle del recibo' }}
+                </h2>
                 <p class="mt-1 text-sm text-ink-muted">
-                    Confirma los campos reconocidos antes de guardar este precio como referencia de energía.
+                    Confirma los datos extraídos y los productos de la factura. El cliente indicado en el comprobante no
+                    se asume como el conductor.
                 </p>
 
                 <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="saveReview">
@@ -505,9 +524,249 @@ async function deleteInvoice(invoice: EnergyInvoice): Promise<void> {
                         <input v-model="reviewForm.invoice_date" type="date" class="field-control" />
                     </label>
                     <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted sm:col-span-2">
-                        Nombre del producto (opcional)
+                        Nombre del producto principal (opcional)
                         <input v-model="reviewForm.fuel_type" type="text" maxlength="120" class="field-control" />
                     </label>
+
+                    <fieldset class="grid gap-4 rounded-lg border-line p-4 sm:col-span-2 sm:grid-cols-2">
+                        <legend class="px-1 text-sm font-semibold text-ink">Proveedor y estación</legend>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Razón social / proveedor
+                            <input v-model="reviewForm.vendor_name" maxlength="255" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Nombre comercial
+                            <input v-model="reviewForm.vendor_commercial_name" maxlength="255" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Identificación fiscal
+                            <input v-model="reviewForm.vendor_tax_id" maxlength="64" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Dirección del proveedor
+                            <input v-model="reviewForm.vendor_address" maxlength="255" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Estación
+                            <input v-model="reviewForm.station_name" maxlength="120" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Marca de estación
+                            <input v-model="reviewForm.station_brand" maxlength="120" class="field-control" />
+                        </label>
+                    </fieldset>
+
+                    <fieldset class="grid gap-4 rounded-lg border-line p-4 sm:col-span-2 sm:grid-cols-2">
+                        <legend class="px-1 text-sm font-semibold text-ink">Datos del comprobante</legend>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Cliente facturado
+                            <input v-model="reviewForm.customer_name" maxlength="255" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Identificación del cliente
+                            <input v-model="reviewForm.customer_tax_id" maxlength="64" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Correo del cliente
+                            <input
+                                v-model="reviewForm.customer_email"
+                                type="email"
+                                maxlength="255"
+                                class="field-control"
+                            />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Forma de pago
+                            <input v-model="reviewForm.payment_method" maxlength="80" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Placa del vehículo
+                            <input v-model="reviewForm.vehicle_plate" maxlength="32" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Número de factura
+                            <input v-model="reviewForm.invoice_number" maxlength="64" class="field-control" />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted sm:col-span-2">
+                            Número de autorización
+                            <input v-model="reviewForm.authorization_number" maxlength="64" class="field-control" />
+                        </label>
+                    </fieldset>
+
+                    <fieldset class="grid gap-4 rounded-lg border-line p-4 sm:col-span-2 sm:grid-cols-2">
+                        <legend class="px-1 text-sm font-semibold text-ink">Totales del comprobante</legend>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Subtotal
+                            <input
+                                v-model="reviewForm.subtotal_amount"
+                                type="number"
+                                min="0"
+                                step="any"
+                                class="field-control"
+                            />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Impuesto
+                            <input
+                                v-model="reviewForm.tax_amount"
+                                type="number"
+                                min="0"
+                                step="any"
+                                class="field-control"
+                            />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Tasa de impuesto (%)
+                            <input
+                                v-model="reviewForm.tax_rate"
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="any"
+                                class="field-control"
+                            />
+                        </label>
+                        <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                            Total sin subsidio
+                            <input
+                                v-model="reviewForm.total_amount_without_subsidy"
+                                type="number"
+                                min="0"
+                                step="any"
+                                class="field-control"
+                            />
+                        </label>
+                    </fieldset>
+
+                    <fieldset class="grid gap-4 rounded-lg border-line p-4 sm:col-span-2">
+                        <legend class="px-1 text-sm font-semibold text-ink">Productos / líneas</legend>
+                        <article
+                            v-for="(item, index) in reviewForm.items"
+                            :key="index"
+                            class="grid gap-3 rounded-lg bg-canvas p-3 sm:grid-cols-2"
+                        >
+                            <h3 class="text-sm font-medium text-ink sm:col-span-2">Producto {{ index + 1 }}</h3>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Descripción
+                                <input v-model="item.product_description" maxlength="255" class="field-control" />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Código
+                                <input v-model="item.item_code" maxlength="64" class="field-control" />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Cantidad
+                                <input v-model="item.quantity" type="number" min="0" step="any" class="field-control" />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Unidad
+                                <select v-model="item.quantity_unit" class="field-control">
+                                    <option value="">Sin unidad</option>
+                                    <option value="gallons">Galones</option>
+                                    <option value="litres">Litros</option>
+                                    <option value="kwh">kWh</option>
+                                </select>
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Precio unitario
+                                <input
+                                    v-model="item.unit_price"
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    class="field-control"
+                                />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Precio sin subsidio
+                                <input
+                                    v-model="item.unit_price_without_subsidy"
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    class="field-control"
+                                />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Subsidio
+                                <input
+                                    v-model="item.subsidy_amount"
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    class="field-control"
+                                />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Subtotal
+                                <input
+                                    v-model="item.subtotal_amount"
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    class="field-control"
+                                />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Impuesto
+                                <input
+                                    v-model="item.tax_amount"
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    class="field-control"
+                                />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Total
+                                <input
+                                    v-model="item.total_amount"
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    class="field-control"
+                                />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Total sin subsidio
+                                <input
+                                    v-model="item.total_amount_without_subsidy"
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    class="field-control"
+                                />
+                            </label>
+                            <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                                Tasa de impuesto (%)
+                                <input
+                                    v-model="item.tax_rate"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="any"
+                                    class="field-control"
+                                />
+                            </label>
+                            <button
+                                type="button"
+                                class="min-h-11 justify-self-start text-xs font-medium text-loss hover:underline"
+                                @click="removeInvoiceItem(index)"
+                            >
+                                Quitar producto {{ index + 1 }}
+                            </button>
+                        </article>
+                        <p v-if="reviewForm.items.length === 0" class="text-sm text-ink-muted">
+                            No hay líneas de producto reconocidas.
+                        </p>
+                        <button
+                            type="button"
+                            class="min-h-11 justify-self-start rounded-lg border-line px-3 text-sm font-medium text-brand"
+                            @click="reviewForm.items.push(newInvoiceItem())"
+                        >
+                            Agregar producto
+                        </button>
+                    </fieldset>
 
                     <p v-if="actionError" class="text-sm text-loss sm:col-span-2" role="alert">{{ actionError }}</p>
 
