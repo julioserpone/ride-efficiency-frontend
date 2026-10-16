@@ -153,22 +153,102 @@ export interface MonthlyResponse {
 
 export type EnergyInvoiceStatus = 'pending' | 'processing' | 'review_required' | 'completed' | 'failed'
 
+export type EnergyUnit = 'gallons' | 'litres' | 'kwh'
+
+export interface InvoiceVendor {
+    id: number
+    country_id: number | null
+    tax_id: string | null
+    tax_id_normalized: string | null
+    legal_name: string | null
+    commercial_name: string | null
+    address: string | null
+}
+
+export interface EnergyInvoiceItem {
+    id?: number
+    energy_invoice_id?: number
+    energy_product_id?: number | null
+    line_number?: number
+    product_description: string | null
+    item_code: string | null
+    quantity: string | number | null
+    quantity_unit: EnergyUnit | null
+    unit_price: string | number | null
+    unit_price_without_subsidy: string | number | null
+    subsidy_amount: string | number | null
+    subtotal_amount: string | number | null
+    tax_rate: string | number | null
+    tax_amount: string | number | null
+    total_amount: string | number | null
+    total_amount_without_subsidy: string | number | null
+    energy_product?: EnergyProduct | null
+}
+
 export interface EnergyInvoice {
     id: number
     country_id: number | null
+    vendor_id?: number | null
     energy_product_id: number | null
     image_path: string
     total_amount_paid: string | null
     energy_amount: string | null
-    energy_unit: 'gallons' | 'litres' | 'kwh' | null
+    energy_unit: EnergyUnit | null
     currency_code: string | null
     fuel_type: string | null
     energy_type: string | null
     unit_price: string | null
     vendor_name: string | null
+    vendor_tax_id?: string | null
+    vendor_address?: string | null
+    station_name?: string | null
+    station_brand?: string | null
+    customer_name?: string | null
+    customer_tax_id?: string | null
+    customer_email?: string | null
+    payment_method?: string | null
+    vehicle_plate?: string | null
+    invoice_number?: string | null
+    authorization_number?: string | null
+    subtotal_amount?: string | null
+    tax_amount?: string | null
+    tax_rate?: string | null
+    total_amount_without_subsidy?: string | null
+    vendor?: InvoiceVendor | null
+    items?: EnergyInvoiceItem[]
     invoice_date: string | null
     status: EnergyInvoiceStatus
     created_at: string
+}
+
+export interface EnergyInvoiceReviewPayload {
+    country_id: number
+    energy_type: string
+    energy_unit: EnergyUnit
+    energy_amount: number
+    unit_price: number
+    total_amount_paid?: number | null
+    energy_product_id?: number | null
+    fuel_type?: string | null
+    tax_rate?: number | null
+    invoice_date?: string | null
+    vendor_name?: string | null
+    vendor_tax_id?: string | null
+    vendor_address?: string | null
+    vendor_commercial_name?: string | null
+    station_name?: string | null
+    station_brand?: string | null
+    customer_name?: string | null
+    customer_tax_id?: string | null
+    customer_email?: string | null
+    payment_method?: string | null
+    vehicle_plate?: string | null
+    invoice_number?: string | null
+    authorization_number?: string | null
+    subtotal_amount?: number | null
+    tax_amount?: number | null
+    total_amount_without_subsidy?: number | null
+    items?: Array<Omit<EnergyInvoiceItem, 'energy_invoice_id' | 'energy_product' | 'id' | 'line_number'>>
 }
 
 export interface EnergyInvoicesResponse {
