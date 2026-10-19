@@ -6,6 +6,10 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
     plugins: [vue(), tailwindcss()],
+    test: {
+        environment: 'jsdom',
+        include: ['src/**/*.test.ts'],
+    },
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),

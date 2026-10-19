@@ -126,11 +126,14 @@ export const energyInvoicesApi = {
     ): Promise<EnergyInvoiceMutationResponse> {
         let payload: FormData | { image_base64: string; country_id?: string; invoice_date?: string }
 
-        if (image instanceof File) {
+        if (typeof File !== 'undefined' && image instanceof File) {
             const formData = new FormData()
             formData.append('image', image)
             payload = formData
         } else {
+            if (typeof image !== 'string') {
+                throw new Error('The invoice image is invalid.')
+            }
             payload = { image_base64: image }
         }
 

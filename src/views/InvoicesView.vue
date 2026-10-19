@@ -101,7 +101,17 @@ async function setSelectedFile(event: Event): Promise<void> {
     const input = event.target
     file.value = input instanceof HTMLInputElement ? (input.files?.[0] ?? null) : null
     base64Image.value = null
-    if (file.value && file.value.size <= 10 * 1024 * 1024) {
+    if (!file.value) {
+        return
+    }
+
+    if (file.value.size > 10 * 1024 * 1024) {
+        actionError.value = 'El archivo no debe superar los 10 MB.'
+        return
+    }
+
+    try {
+        const selectedFile = file.value
         const reader = new FileReader()
         base64Image.value = await new Promise<string>((resolve, reject) => {
             reader.onload = () => {
@@ -112,8 +122,11 @@ async function setSelectedFile(event: Event): Promise<void> {
                 }
             }
             reader.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'))
-            reader.readAsDataURL(file.value as File)
+            reader.readAsDataURL(selectedFile)
         })
+        actionError.value = null
+    } catch (readError) {
+        actionError.value = readError instanceof Error ? readError.message : 'No se pudo leer la imagen seleccionada.'
     }
 }
 
