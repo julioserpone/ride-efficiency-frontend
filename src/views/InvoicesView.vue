@@ -27,6 +27,7 @@ const isSavingReview = ref(false)
 const error = ref<string | null>(null)
 const actionError = ref<string | null>(null)
 const file = ref<File | null>(null)
+const base64Image = ref<string | null>(null)
 const uploadCountryId = ref<number | null>(null)
 const uploadDate = ref('')
 const reviewInvoice = ref<EnergyInvoice | null>(null)
@@ -96,9 +97,37 @@ const energyUnits = computed(() =>
           ],
 )
 
-function setSelectedFile(event: Event): void {
+async function setSelectedFile(event: Event): Promise<void> {
     const input = event.target
     file.value = input instanceof HTMLInputElement ? (input.files?.[0] ?? null) : null
+    base64Image.value = null
+    if (!file.value) {
+        return
+    }
+
+    if (file.value.size > 10 * 1024 * 1024) {
+        actionError.value = 'El archivo no debe superar los 10 MB.'
+        return
+    }
+
+    try {
+        const selectedFile = file.value
+        const reader = new FileReader()
+        base64Image.value = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => {
+                if (typeof reader.result === 'string') {
+                    resolve(reader.result)
+                } else {
+                    reject(new Error('No se pudo leer la imagen seleccionada.'))
+                }
+            }
+            reader.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'))
+            reader.readAsDataURL(selectedFile)
+        })
+        actionError.value = null
+    } catch (readError) {
+        actionError.value = readError instanceof Error ? readError.message : 'No se pudo leer la imagen seleccionada.'
+    }
 }
 
 function updateReviewEnergyType(): void {
@@ -159,8 +188,13 @@ async function uploadInvoice(): Promise<void> {
     isUploading.value = true
 
     try {
-        await energyInvoicesApi.upload(file.value, uploadCountryId.value, uploadDate.value || null)
+        if (base64Image.value === null) {
+            throw new Error('No se pudo preparar la imagen para el envío.')
+        }
+
+        await energyInvoicesApi.upload(base64Image.value, uploadCountryId.value, uploadDate.value || null)
         file.value = null
+        base64Image.value = null
         uploadDate.value = ''
         page.value = 1
         await load()
@@ -252,7 +286,10 @@ async function deleteInvoice(invoice: EnergyInvoice): Promise<void> {
             {{ error }}
         </div>
 
-        <SectionCard title="Subir recibo" description="JPG, PNG o PDF · máximo 10 MB">
+        <SectionCard
+            title="Subir recibo"
+            description="La imagen se codifica en Base64 para enviarse al API · JPG, PNG o PDF · máximo 10 MB"
+        >
             <form class="grid gap-4 md:grid-cols-2" @submit.prevent="uploadInvoice">
                 <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
                     Archivo

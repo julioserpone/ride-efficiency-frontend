@@ -119,19 +119,41 @@ export const energyInvoicesApi = {
         return data
     },
 
-    async upload(image: File, countryId: number | null, invoiceDate: string | null) {
-        const formData = new FormData()
-        formData.append('image', image)
+    async upload(
+        image: File | string,
+        countryId: number | null,
+        invoiceDate: string | null,
+    ): Promise<EnergyInvoiceMutationResponse> {
+        let payload: FormData | { image_base64: string; country_id?: string; invoice_date?: string }
+
+        if (typeof File !== 'undefined' && image instanceof File) {
+            const formData = new FormData()
+            formData.append('image', image)
+            payload = formData
+        } else {
+            if (typeof image !== 'string') {
+                throw new Error('The invoice image is invalid.')
+            }
+            payload = { image_base64: image }
+        }
 
         if (countryId !== null) {
-            formData.append('country_id', String(countryId))
+            if (payload instanceof FormData) {
+                payload.append('country_id', String(countryId))
+            } else {
+                payload.country_id = String(countryId)
+            }
         }
 
         if (invoiceDate) {
-            formData.append('invoice_date', invoiceDate)
+            if (payload instanceof FormData) {
+                payload.append('invoice_date', invoiceDate)
+            } else {
+                payload.invoice_date = invoiceDate
+            }
         }
 
-        const { data } = await http.post<EnergyInvoiceMutationResponse>('/energy-invoices', formData)
+        const { data } = await http.post<EnergyInvoiceMutationResponse>('/energy-invoices', payload)
 
         return data
     },
