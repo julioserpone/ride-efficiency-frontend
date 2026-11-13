@@ -1,6 +1,7 @@
 import { http } from './client'
 import type {
     CountryListResponse,
+    DailyOfferSummaryResponse,
     EfficiencyResponse,
     EnergyInvoice,
     EnergyInvoiceMutationResponse,
@@ -10,6 +11,8 @@ import type {
     IssueTokenResponse,
     MonthlyResponse,
     RideTripDetailResponse,
+    RideOfferDetailResponse,
+    RideOffersResponse,
     RideTripMutationResponse,
     RideTripsResponse,
     ShiftInput,
@@ -211,5 +214,25 @@ export const rideTripsApi = {
         const { data } = await http.get<RideTripDetailResponse>(`/ride-trips/${id}`)
 
         return data.trip
+    },
+}
+
+export const offersApi = {
+    async list(params: { platform?: string; status?: string; page?: number } = {}) {
+        const { data } = await http.get<RideOffersResponse>('/ride-offers', { params })
+
+        return data
+    },
+
+    async show(id: number) {
+        const { data } = await http.get<RideOfferDetailResponse>(`/ride-offers/${id}`)
+
+        return data.offer
+    },
+
+    async dailySummary() {
+        const { data } = await http.get<DailyOfferSummaryResponse>('/ride-offers/summary/daily')
+
+        return data.summary
     },
 }
