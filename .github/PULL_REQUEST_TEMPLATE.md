@@ -1,10 +1,33 @@
 ## Summary
 
-<!-- Describe the problem and the user-visible or maintenance outcome. -->
+<!-- What problem does this PR solve? Who benefits (user/maintainer) and what is the visible outcome? -->
+
+## Context and scope
+
+- Related issue(s):
+- Epic/task (e.g. `WEB-OFFER-01`):
+- In scope:
+- Out of scope:
 
 ## Changes
 
+<!-- Group by area; mention files/routes/components touched. -->
+
 -
+-
+
+## API and data contract impact
+
+- API endpoints added/changed:
+- Request/response shape changes:
+- Coordination needed with `ride-efficiency-api`:
+- Backward compatibility:
+
+## UI, accessibility and responsive behavior
+
+- Screenshots with synthetic data (desktop + mobile) for visual changes:
+- Keyboard/focus/contrast considerations:
+- Empty, loading and error states:
 
 ## Verification
 
@@ -13,12 +36,13 @@
 - [ ] `npm run lint:check`
 - [ ] `npm run format:check`
 - [ ] Responsive behavior checked at desktop and mobile widths (for UI changes)
+- Commands run and notable output:
 
-## Compatibility and accessibility
+## Risks and limitations
 
-- API contract impact: none / describe changes and coordination with the API repo
-- Accessibility or responsive considerations:
-- Screenshots with synthetic data attached for visual changes
+- Known limitations:
+- Follow-up work:
+- Rollback plan:
 
 ## Checklist
 
