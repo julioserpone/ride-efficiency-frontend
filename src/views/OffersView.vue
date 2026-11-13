@@ -31,7 +31,7 @@ async function load(): Promise<void> {
         lastPage.value = listResponse.offers.last_page
         funnel.value = summary
     } catch (loadError) {
-    error.value = loadError instanceof Error ? loadError.message : 'No se pudieron cargar las ofertas.'
+        error.value = loadError instanceof Error ? loadError.message : 'No se pudieron cargar las ofertas.'
     } finally {
         isLoading.value = false
     }
@@ -57,9 +57,7 @@ onMounted(load)
     <div class="flex flex-col gap-6">
         <header>
             <h1 class="text-xl font-semibold text-ink">Ofertas</h1>
-            <p class="mt-1 text-sm text-ink-muted">
-                Historial y embudo de ofertas capturadas.
-            </p>
+            <p class="mt-1 text-sm text-ink-muted">Historial y embudo de ofertas capturadas.</p>
         </header>
 
         <div v-if="error" class="rounded-card border-line bg-surface p-4 text-sm text-loss">
@@ -68,10 +66,22 @@ onMounted(load)
 
         <SectionCard v-if="funnel" title="Embudo diario">
             <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div><span class="text-xs text-ink-muted">Recibidas</span><div class="text-lg font-semibold">{{ funnel.offered }}</div></div>
-                <div><span class="text-xs text-ink-muted">Aceptadas</span><div class="text-lg font-semibold">{{ funnel.accepted }}</div></div>
-                <div><span class="text-xs text-ink-muted">Completadas</span><div class="text-lg font-semibold">{{ funnel.completed }}</div></div>
-                <div><span class="text-xs text-ink-muted">Rechazadas</span><div class="text-lg font-semibold">{{ funnel.rejected }}</div></div>
+                <div>
+                    <span class="text-xs text-ink-muted">Recibidas</span>
+                    <div class="text-lg font-semibold">{{ funnel.offered }}</div>
+                </div>
+                <div>
+                    <span class="text-xs text-ink-muted">Aceptadas</span>
+                    <div class="text-lg font-semibold">{{ funnel.accepted }}</div>
+                </div>
+                <div>
+                    <span class="text-xs text-ink-muted">Completadas</span>
+                    <div class="text-lg font-semibold">{{ funnel.completed }}</div>
+                </div>
+                <div>
+                    <span class="text-xs text-ink-muted">Rechazadas</span>
+                    <div class="text-lg font-semibold">{{ funnel.rejected }}</div>
+                </div>
             </div>
         </SectionCard>
 
@@ -88,9 +98,7 @@ onMounted(load)
                     </template>
                 </Column>
                 <Column header="Distancia">
-                    <template #body="{ data }">
-                        {{ data.estimated_distance_km }} km
-                    </template>
+                    <template #body="{ data }"> {{ data.estimated_distance_km }} km </template>
                 </Column>
                 <Column header="Veredicto">
                     <template #body="{ data }">
@@ -106,5 +114,3 @@ onMounted(load)
         </SectionCard>
     </div>
 </template>
-EOF
-echo "done"
