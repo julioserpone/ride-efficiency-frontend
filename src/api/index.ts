@@ -218,7 +218,17 @@ export const rideTripsApi = {
 }
 
 export const offersApi = {
-    async list(params: { platform?: string; status?: string; page?: number } = {}) {
+    async list(
+        params: {
+            platform?: string
+            status?: string
+            date_from?: string
+            date_to?: string
+            sort?: string
+            page?: number
+            per_page?: number
+        } = {},
+    ) {
         const { data } = await http.get<RideOffersResponse>('/ride-offers', { params })
 
         return data
