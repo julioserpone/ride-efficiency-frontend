@@ -357,6 +357,16 @@ export interface RideOffer {
     completed_at: string | null
     cancelled_at: string | null
     cancellation_reason: string | null
+    service_type?: string | null
+    trip_availability?: string | null
+    rider_identifier?: string | null
+    rider_rating?: number | null
+    rider_trip_count?: number | null
+    pickup_duration_minutes?: number | null
+    pickup_address?: string | null
+    destination_duration_minutes?: number | null
+    destination_address?: string | null
+    payment_method?: string | null
 }
 
 export interface RideOffersResponse {
