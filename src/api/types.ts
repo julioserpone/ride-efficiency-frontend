@@ -329,3 +329,64 @@ export interface RideTripMutationResponse {
 export interface RideTripDetailResponse {
     trip: RideTrip
 }
+
+export interface RideOffer {
+    id: number
+    client_uuid: string
+    user_id: number
+    vehicle_id: number | null
+    platform: string
+    currency_code: string
+    offered_fare: string
+    surge_amount: string
+    tip_amount: string
+    toll_amount: string
+    estimated_distance_km: string
+    estimated_duration_minutes: number | null
+    pickup_distance_km: string | null
+    status: string
+    client_verdict: string | null
+    client_net_profit_estimate: string | null
+    client_break_even_fare: string | null
+    server_verdict: string | null
+    server_net_profit_estimate: string | null
+    server_break_even_fare: string | null
+    calculation_version: string | null
+    received_at: string
+    decided_at: string | null
+    completed_at: string | null
+    cancelled_at: string | null
+    cancellation_reason: string | null
+}
+
+export interface RideOffersResponse {
+    offers: {
+        data: RideOffer[]
+        current_page: number
+        last_page: number
+        per_page: number
+        total: number
+    }
+}
+
+export interface RideOfferDetailResponse {
+    offer: RideOffer
+}
+
+export interface OfferFunnel {
+    offered: number
+    evaluated: number
+    accepted: number
+    rejected: number
+    expired: number
+    completed: number
+    cancelled: number
+    acceptance_rate: number
+    completion_rate: number
+    avg_offered_fare: string | null
+    avg_net_profit: string | null
+}
+
+export interface DailyOfferSummaryResponse {
+    summary: OfferFunnel
+}

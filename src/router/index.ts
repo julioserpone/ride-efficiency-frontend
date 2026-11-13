@@ -36,6 +36,12 @@ const router = createRouter({
             meta: { title: 'Vehículos y viajes' },
         },
         {
+            path: '/offers',
+            name: 'offers',
+            component: () => import('@/views/OffersView.vue'),
+            meta: { title: 'Ofertas' },
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: { name: 'overview' },
         },
