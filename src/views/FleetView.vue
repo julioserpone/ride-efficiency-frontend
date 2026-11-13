@@ -20,6 +20,15 @@ const vehicleLastPage = ref(1)
 const tripPage = ref(1)
 const tripLastPage = ref(1)
 const isLoading = ref(false)
+
+const props = defineProps<{ focus?: 'all' | 'vehicles' | 'trips' }>()
+
+const focusMode = computed(() => props.focus ?? 'all')
+const showVehicles = computed(() => focusMode.value === 'all' || focusMode.value === 'vehicles')
+const showTrips = computed(() => focusMode.value === 'all' || focusMode.value === 'trips')
+const viewTitle = computed(() =>
+    focusMode.value === 'vehicles' ? 'Vehículos' : focusMode.value === 'trips' ? 'Viajes' : 'Vehículos y viajes',
+)
 const isCreatingVehicle = ref(false)
 const isCreatingTrip = ref(false)
 const error = ref<string | null>(null)
@@ -248,7 +257,7 @@ function formatProfit(trip: RideTrip): string {
 <template>
     <div class="flex flex-col gap-6">
         <header>
-            <h1 class="text-xl font-semibold text-ink">Vehículos y viajes</h1>
+            <h1 class="text-xl font-semibold text-ink">{{ viewTitle }}</h1>
             <p class="mt-1 text-sm text-ink-muted">
                 Configura el consumo de cada vehículo y calcula la utilidad real por viaje y plataforma.
             </p>
@@ -265,6 +274,7 @@ function formatProfit(trip: RideTrip): string {
         <template v-else>
             <div class="grid gap-6 xl:grid-cols-2">
                 <SectionCard
+                    v-if="showVehicles"
                     title="Registrar vehículo"
                     description="El consumo debe expresarse en la unidad de energía seleccionada."
                 >
@@ -349,6 +359,7 @@ function formatProfit(trip: RideTrip): string {
                 </SectionCard>
 
                 <SectionCard
+                    v-if="showTrips"
                     title="Calcular viaje"
                     description="Si hay una factura completada compatible, el API usa su precio por defecto."
                 >
@@ -469,7 +480,7 @@ function formatProfit(trip: RideTrip): string {
                 </SectionCard>
             </div>
 
-            <SectionCard title="Vehículos" description="Perfiles activos registrados">
+            <SectionCard v-if="showVehicles" title="Vehículos" description="Perfiles activos registrados">
                 <DataTable :value="vehicles" data-key="id" size="small" scrollable responsive-layout="scroll">
                     <Column field="name" header="Vehículo" style="min-width: 150px" />
                     <Column header="País" style="min-width: 140px">
@@ -518,7 +529,11 @@ function formatProfit(trip: RideTrip): string {
                 </div>
             </SectionCard>
 
-            <SectionCard title="Viajes calculados" description="Detalle del cálculo disponible en cada fila">
+            <SectionCard
+                v-if="showTrips"
+                title="Viajes calculados"
+                description="Detalle del cálculo disponible en cada fila"
+            >
                 <DataTable :value="trips" data-key="id" size="small" scrollable responsive-layout="scroll">
                     <Column field="created_at" header="Fecha" style="min-width: 140px">
                         <template #body="{ data: row }">{{ formatDate(row.created_at) }}</template>

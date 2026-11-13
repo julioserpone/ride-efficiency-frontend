@@ -19,7 +19,9 @@ const navigation = [
     { label: 'Resumen', icon: 'pi pi-chart-line', route: 'overview' },
     { label: 'Turnos', icon: 'pi pi-calendar', route: 'shifts' },
     { label: 'Energía y recibos', icon: 'pi pi-receipt', route: 'invoices' },
-    { label: 'Vehículos y viajes', icon: 'pi pi-car', route: 'fleet' },
+    { label: 'Vehículos', icon: 'pi pi-car', route: 'vehicles' },
+    { label: 'Viajes', icon: 'pi pi-map-marker', route: 'trips' },
+    { label: 'Ofertas', icon: 'pi pi-tag', route: 'offers' },
 ]
 
 function updateViewport(event: MediaQueryListEvent | MediaQueryList): void {

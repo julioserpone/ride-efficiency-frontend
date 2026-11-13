@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { getStoredToken } from '@/api/client'
+import { clearStoredToken, getStoredToken } from '@/api/client'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,10 +31,22 @@ const router = createRouter({
             meta: { title: 'Energía y recibos' },
         },
         {
-            path: '/fleet',
-            name: 'fleet',
+            path: '/vehicles',
+            name: 'vehicles',
             component: () => import('@/views/FleetView.vue'),
-            meta: { title: 'Vehículos y viajes' },
+            props: { focus: 'vehicles' },
+            meta: { title: 'Vehículos' },
+        },
+        {
+            path: '/trips',
+            name: 'trips',
+            component: () => import('@/views/FleetView.vue'),
+            props: { focus: 'trips' },
+            meta: { title: 'Viajes' },
+        },
+        {
+            path: '/fleet',
+            redirect: { name: 'vehicles' },
         },
         {
             path: '/offers',
@@ -48,7 +61,7 @@ const router = createRouter({
     ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
     const hasToken = getStoredToken() !== null
 
     if (to.meta.public !== true && !hasToken) {
@@ -57,6 +70,21 @@ router.beforeEach((to) => {
 
     if (to.meta.public === true && hasToken) {
         return { name: 'overview' }
+    }
+
+    if (to.meta.public !== true && hasToken) {
+        const auth = useAuthStore()
+
+        if (auth.user === null) {
+            try {
+                await auth.loadCurrentUser()
+            } catch {
+                auth.token = null
+                auth.user = null
+                clearStoredToken()
+                return { name: 'login' }
+            }
+        }
     }
 
     return true

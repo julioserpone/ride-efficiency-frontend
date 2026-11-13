@@ -408,6 +408,63 @@ onMounted(load)
                         </div>
                     </div>
 
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                        <div v-if="selectedOffer.service_type">
+                            <p class="text-xs text-ink-muted">Tipo de viaje</p>
+                            <p class="font-medium">{{ selectedOffer.service_type }}</p>
+                        </div>
+                        <div v-if="selectedOffer.trip_availability">
+                            <p class="text-xs text-ink-muted">Disponibilidad</p>
+                            <p class="font-medium">{{ selectedOffer.trip_availability }}</p>
+                        </div>
+                        <div v-if="selectedOffer.rider_identifier">
+                            <p class="text-xs text-ink-muted">Identificación del usuario</p>
+                            <p class="font-medium">{{ selectedOffer.rider_identifier }}</p>
+                        </div>
+                        <div v-if="selectedOffer.rider_rating !== null && selectedOffer.rider_rating !== undefined">
+                            <p class="text-xs text-ink-muted">Calificación del usuario</p>
+                            <p class="font-medium">{{ selectedOffer.rider_rating.toFixed(1) }} / 5.0</p>
+                        </div>
+                        <div
+                            v-if="
+                                selectedOffer.rider_trip_count !== null && selectedOffer.rider_trip_count !== undefined
+                            "
+                        >
+                            <p class="text-xs text-ink-muted">Viajes del usuario</p>
+                            <p class="font-medium">{{ selectedOffer.rider_trip_count }}</p>
+                        </div>
+                        <div
+                            v-if="
+                                selectedOffer.pickup_duration_minutes !== null &&
+                                selectedOffer.pickup_duration_minutes !== undefined
+                            "
+                        >
+                            <p class="text-xs text-ink-muted">Tiempo al punto de partida</p>
+                            <p class="font-medium">{{ selectedOffer.pickup_duration_minutes }} min</p>
+                        </div>
+                        <div v-if="selectedOffer.pickup_address">
+                            <p class="text-xs text-ink-muted">Punto de partida</p>
+                            <p class="font-medium">{{ selectedOffer.pickup_address }}</p>
+                        </div>
+                        <div
+                            v-if="
+                                selectedOffer.destination_duration_minutes !== null &&
+                                selectedOffer.destination_duration_minutes !== undefined
+                            "
+                        >
+                            <p class="text-xs text-ink-muted">Tiempo al destino</p>
+                            <p class="font-medium">{{ selectedOffer.destination_duration_minutes }} min</p>
+                        </div>
+                        <div v-if="selectedOffer.destination_address">
+                            <p class="text-xs text-ink-muted">Destino</p>
+                            <p class="font-medium">{{ selectedOffer.destination_address }}</p>
+                        </div>
+                        <div v-if="selectedOffer.payment_method">
+                            <p class="text-xs text-ink-muted">Forma de pago</p>
+                            <p class="font-medium">{{ selectedOffer.payment_method }}</p>
+                        </div>
+                    </div>
+
                     <div class="mt-6 grid gap-4 sm:grid-cols-2">
                         <div class="rounded-card border border-line p-4">
                             <p class="text-sm font-semibold text-ink">Veredicto cliente</p>
