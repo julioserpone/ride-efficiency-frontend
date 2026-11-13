@@ -3,7 +3,7 @@ import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import ProgressSpinner from 'primevue/progressspinner'
 import Tag from 'primevue/tag'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { offersApi } from '@/api'
 import type { OfferFunnel, RideOffer } from '@/api/types'
@@ -17,13 +17,49 @@ const lastPage = ref(1)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
+const platformFilter = ref('')
+const statusFilter = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
+const sortBy = ref('received_at')
+const sortDir = ref<'asc' | 'desc'>('desc')
+
+const statusOptions = ['', 'offered', 'evaluated', 'accepted', 'rejected', 'expired', 'completed', 'cancelled']
+
+const statusLabel: Record<string, string> = {
+    offered: 'Ofrecida',
+    evaluated: 'Evaluada',
+    accepted: 'Aceptada',
+    rejected: 'Rechazada',
+    expired: 'Expirada',
+    completed: 'Completada',
+    cancelled: 'Cancelada',
+}
+const sortOptions = [
+    { value: 'received_at', label: 'Fecha recibida' },
+    { value: 'offered_fare', label: 'Tarifa ofrecida' },
+    { value: 'status', label: 'Estado' },
+    { value: 'platform', label: 'Plataforma' },
+]
+
+const hasActiveFilters = computed(() =>
+    Boolean(platformFilter.value || statusFilter.value || dateFrom.value || dateTo.value),
+)
+
 async function load(): Promise<void> {
     isLoading.value = true
     error.value = null
 
     try {
         const [listResponse, summary] = await Promise.all([
-            offersApi.list({ page: page.value }),
+            offersApi.list({
+                platform: platformFilter.value || undefined,
+                status: statusFilter.value || undefined,
+                date_from: dateFrom.value || undefined,
+                date_to: dateTo.value || undefined,
+                sort: `${sortDir.value === 'desc' ? '-' : ''}${sortBy.value}`,
+                page: page.value,
+            }),
             offersApi.dailySummary(),
         ])
         offers.value = listResponse.offers.data
@@ -35,6 +71,37 @@ async function load(): Promise<void> {
     } finally {
         isLoading.value = false
     }
+}
+
+function resetAndLoad(): void {
+    page.value = 1
+    load()
+}
+
+function previousPage(): void {
+    if (page.value <= 1) {
+        return
+    }
+    page.value -= 1
+    load()
+}
+
+function nextPage(): void {
+    if (page.value >= lastPage.value) {
+        return
+    }
+    page.value += 1
+    load()
+}
+
+function clearFilters(): void {
+    platformFilter.value = ''
+    statusFilter.value = ''
+    dateFrom.value = ''
+    dateTo.value = ''
+    sortBy.value = 'received_at'
+    sortDir.value = 'desc'
+    resetAndLoad()
 }
 
 function verdictSeverity(verdict: string | null): 'success' | 'warn' | 'danger' | 'secondary' {
@@ -50,6 +117,10 @@ function verdictSeverity(verdict: string | null): 'success' | 'warn' | 'danger' 
     }
 }
 
+watch([platformFilter, statusFilter, dateFrom, dateTo, sortBy, sortDir], () => {
+    resetAndLoad()
+})
+
 onMounted(load)
 </script>
 
@@ -57,12 +128,70 @@ onMounted(load)
     <div class="flex flex-col gap-6">
         <header>
             <h1 class="text-xl font-semibold text-ink">Ofertas</h1>
-            <p class="mt-1 text-sm text-ink-muted">Historial y embudo de ofertas capturadas.</p>
+            <p class="mt-1 text-sm text-ink-muted">Historial, filtros y embudo de ofertas capturadas.</p>
         </header>
 
-        <div v-if="error" class="rounded-card border-line bg-surface p-4 text-sm text-loss">
+        <div v-if="error" class="rounded-card border-line bg-surface p-4 text-sm text-loss" role="alert">
             {{ error }}
         </div>
+
+        <SectionCard title="Filtros" description="Filtra por plataforma, estado y fecha, y ordena los resultados.">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                    Plataforma
+                    <select v-model="platformFilter" class="field-control">
+                        <option value="">Todas</option>
+                        <option value="uber">Uber</option>
+                        <option value="didi">DiDi</option>
+                        <option value="indrive">InDrive</option>
+                    </select>
+                </label>
+                <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                    Estado
+                    <select v-model="statusFilter" class="field-control">
+                        <option value="">Todos</option>
+                        <option v-for="status in statusOptions.filter(Boolean)" :key="status" :value="status">
+                            {{ statusLabel[status] ?? status }}
+                        </option>
+                    </select>
+                </label>
+                <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                    Desde
+                    <input v-model="dateFrom" type="date" class="field-control" />
+                </label>
+                <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                    Hasta
+                    <input v-model="dateTo" type="date" class="field-control" />
+                </label>
+                <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                    Ordenar por
+                    <select v-model="sortBy" class="field-control">
+                        <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                        </option>
+                    </select>
+                </label>
+                <label class="flex flex-col gap-1.5 text-xs font-medium text-ink-muted">
+                    Dirección
+                    <select v-model="sortDir" class="field-control">
+                        <option value="desc">Descendente</option>
+                        <option value="asc">Ascendente</option>
+                    </select>
+                </label>
+            </div>
+            <div class="mt-4 flex items-center justify-between">
+                <p v-if="hasActiveFilters" class="text-xs text-ink-muted">Filtros activos aplicados.</p>
+                <p v-else class="text-xs text-ink-muted">Sin filtros activos.</p>
+                <button
+                    type="button"
+                    class="rounded-lg border border-line px-3 py-1.5 text-sm disabled:opacity-50"
+                    :disabled="!hasActiveFilters"
+                    @click="clearFilters"
+                >
+                    Limpiar
+                </button>
+            </div>
+        </SectionCard>
 
         <SectionCard v-if="funnel" title="Embudo diario">
             <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -90,7 +219,12 @@ onMounted(load)
         </div>
 
         <SectionCard v-else title="Ofertas recientes">
-            <DataTable :value="offers" stripedRows size="small">
+            <DataTable :value="offers" stripedRows size="small" data-key="id">
+                <template #empty>
+                    <p class="py-10 text-center text-sm text-ink-muted">
+                        No hay ofertas para los filtros seleccionados.
+                    </p>
+                </template>
                 <Column field="platform" header="Plataforma" />
                 <Column header="Tarifa">
                     <template #body="{ data }">
@@ -111,6 +245,28 @@ onMounted(load)
                     </template>
                 </Column>
             </DataTable>
+
+            <div v-if="lastPage > 1" class="mt-4 flex items-center justify-between text-sm text-ink-muted">
+                <span>Página {{ page }} de {{ lastPage }}</span>
+                <div class="flex gap-2">
+                    <button
+                        type="button"
+                        class="rounded-lg border border-line px-3 py-1.5 disabled:opacity-50"
+                        :disabled="page <= 1"
+                        @click="previousPage"
+                    >
+                        Anterior
+                    </button>
+                    <button
+                        type="button"
+                        class="rounded-lg border border-line px-3 py-1.5 disabled:opacity-50"
+                        :disabled="page >= lastPage"
+                        @click="nextPage"
+                    >
+                        Siguiente
+                    </button>
+                </div>
+            </div>
         </SectionCard>
     </div>
 </template>
