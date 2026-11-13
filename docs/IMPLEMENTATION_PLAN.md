@@ -85,7 +85,7 @@
 ### 4.2 EPIC WEB-OFFER — Offers dashboard
 
 - [x] **WEB-OFFER-01 (M)** Offers list: pagination, filters (platform, status, date), sorting.
-- [ ] **WEB-OFFER-02 (S)** Offer detail: fare, distance, duration, costs, client/server verdict, drift indicator.
+- [-] **WEB-OFFER-02 (S)** Offer detail: fare, distance, duration, costs, client/server verdict, drift indicator.
 - [ ] **WEB-OFFER-03 (M)** Daily funnel: received/evaluated/accepted/rejected/expired/completed/cancelled.
 - [ ] **WEB-OFFER-04 (S)** Acceptance/completion rates, avg offered fare, avg net profit.
 - [ ] **WEB-OFFER-05 (M)** Charts: offers per day, acceptance rate, estimated vs actual profit (ApexCharts).
